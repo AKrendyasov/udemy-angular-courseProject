@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { catchError, tap } from 'rxjs/operators';
-import { Observable, Subject, throwError } from 'rxjs';
+import { BehaviorSubject, throwError } from 'rxjs';
 import { UserModel } from './user.model';
 
 export interface AuthResponseData {
@@ -17,9 +17,10 @@ export interface AuthResponseData {
     providedIn: 'root'
 })
 export class AuthService {
-    user = new Subject<UserModel>();
+    user = new BehaviorSubject<UserModel>(null);
 
-  constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {
+    }
 
     singUp(email: string, password: string) {
         const params = {
@@ -57,7 +58,16 @@ export class AuthService {
                 params
             )
             .pipe(
-                catchError(this.handleError)
+                catchError(this.handleError),
+                tap(resData => {
+                    this.handleAuthentication(
+                        resData.email,
+                        resData.localId,
+                        resData.idToken,
+                        +resData.expiresIn
+                    );
+                })
+
             );
     }
 
