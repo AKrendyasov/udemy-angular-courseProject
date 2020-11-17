@@ -1,7 +1,7 @@
-import { Component, ComponentFactoryResolver, ViewChild } from '@angular/core';
+import { Component, ComponentFactoryResolver, OnDestroy, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { AuthService, AuthResponseData } from './auth.service';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { AlertComponent } from '../shared/alert/alert.component';
 import { PlaceholderDirective } from '../shared/placeholder.directive';
@@ -11,7 +11,7 @@ import { PlaceholderDirective } from '../shared/placeholder.directive';
     templateUrl: './auth.component.html',
     styleUrls: ['./auth.component.css']
 })
-export class AuthComponent {
+export class AuthComponent implements OnDestroy {
     constructor(
         private auth: AuthService,
         private router: Router,
@@ -22,7 +22,8 @@ export class AuthComponent {
     isLogginMode = false;
     isLoading = false;
     error = null;
-    @ViewChild(PlaceholderDirective) alertHost: PlaceholderDirective
+    alertSubClose: Subscription;
+    @ViewChild(PlaceholderDirective) alertHost: PlaceholderDirective;
 
 
     onSwitchMode() {
@@ -65,7 +66,18 @@ export class AuthComponent {
     private showErrrorAlert(message: string) {
         const alertComponentFactory = this.componentFactoryResolver.resolveComponentFactory(AlertComponent);
         const hostViewContainerRef = this.alertHost.viewContainerRef;
-        hostViewContainerRef.clear()
-        hostViewContainerRef.createComponent(alertComponentFactory)
+        hostViewContainerRef.clear();
+        const alertComponentRef = hostViewContainerRef.createComponent(alertComponentFactory);
+        alertComponentRef.instance.message = message;
+        this.alertSubClose = alertComponentRef.instance.close.subscribe(() => {
+            this.alertSubClose.unsubscribe();
+            hostViewContainerRef.clear();
+        });
+    }
+
+    ngOnDestroy() {
+        if (this.alertSubClose) {
+            this.alertSubClose.unsubscribe();
+        }
     }
 }
