@@ -53,7 +53,7 @@ export class AuthComponent implements OnDestroy {
             },
             errorMessage => {
                 this.error = errorMessage;
-                this.showErrrorAlert(errorMessage);
+                this.showErrorAlert(errorMessage);
                 this.isLoading = false;
             }
         );
@@ -63,7 +63,7 @@ export class AuthComponent implements OnDestroy {
         this.error = null;
     }
 
-    private showErrrorAlert(message: string) {
+    private showErrorAlert(message: string) {
         const alertComponentFactory = this.componentFactoryResolver.resolveComponentFactory(AlertComponent);
         const hostViewContainerRef = this.alertHost.viewContainerRef;
         hostViewContainerRef.clear();
