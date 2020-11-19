@@ -19,7 +19,7 @@ export class AuthComponent implements OnDestroy {
     ) {
     }
 
-    isLogginMode = false;
+    isLogginMode = true;
     isLoading = false;
     error = null;
     alertSubClose: Subscription;
