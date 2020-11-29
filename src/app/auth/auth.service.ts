@@ -29,6 +29,7 @@ export class AuthService {
     }
 
     singUp(email: string, password: string) {
+
         const params = {
             email,
             password,
