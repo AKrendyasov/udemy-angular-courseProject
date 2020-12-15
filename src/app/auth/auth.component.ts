@@ -1,10 +1,14 @@
 import { Component, ComponentFactoryResolver, OnDestroy, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { AuthService, AuthResponseData } from './auth.service';
-import { Observable, Subscription } from 'rxjs';
+import { fromEvent, interval, Observable, of, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { AlertComponent } from '../shared/alert/alert.component';
 import { PlaceholderDirective } from '../shared/placeholder.directive';
+
+
+import { mergeAll, switchAll, concatAll, combineAll, map, delay, debounceTime, take, exhaustMap } from 'rxjs/operators';
+import { ajax } from 'rxjs/ajax';
 
 @Component({
     selector: 'app-auth',
@@ -28,6 +32,70 @@ export class AuthComponent implements OnDestroy {
 
     onSwitchMode() {
         this.isLogginMode = !this.isLogginMode;
+
+        const pokemonId$ = of(1, 5, 6);
+
+        function getPokemonName(id: number) {
+            return ajax.getJSON(`https://pokeapi.co/api/v2/pokemon/${id}`).pipe(
+                map(({ name }) => name),
+                delay(2000)
+            );
+        }
+
+            // mergeAll will subscribe to all of the inner Observables concurrently:
+            // all requests will be made in parallel
+        pokemonId$
+            .pipe(
+                map(id => getPokemonName(id)),
+                mergeAll()
+            )
+            .subscribe((value => {
+                console.log ('mergeAll', value)
+            }));
+            // Output: (2s) bulbasaur, charmeleon, charizard
+
+            // concatAll subscribes to each inner Observable only after the previous one has completed:
+            // it will wait until each request is done, before making a new one
+        pokemonId$
+            .pipe(
+                map(id => getPokemonName(id)),
+                concatAll()
+            )
+            .subscribe((value => {
+                console.log ('concatAll', value)
+            }));
+            // Output: (2s) bulbasaur, (2s) charmeleon, (2s) charizard
+
+            // switchAll will subscribe to the most recently emitted inner Observable:
+            // it will only emit the response from the most recent request
+        pokemonId$
+            .pipe(
+                map(id => getPokemonName(id)),
+                switchAll()
+            )
+            .subscribe((value => {
+                console.log ('switchAll', value)
+            }));
+
+            // combineAll will wait until it has every value, and then combines them into an array
+        pokemonId$
+            .pipe(
+                map(id => getPokemonName(id)),
+                combineAll()
+            )
+            .subscribe((value => {
+                console.log ('combineAll', value)
+            }));
+
+        interval(100).pipe(
+            debounceTime(200)
+        ).subscribe(vl => console.log('debounceTime',vl));
+
+        const clicks = fromEvent(document, 'click');
+        const result = clicks.pipe(
+            exhaustMap(ev => interval(1000).pipe(take(5)))
+        );
+        result.subscribe(x => console.log('exhaustMap x', x));
     }
 
     onFormSubmit(form: NgForm) {
