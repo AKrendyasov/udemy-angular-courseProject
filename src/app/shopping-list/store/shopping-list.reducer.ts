@@ -1,7 +1,5 @@
 import { Ingredient } from '../../shared/ingredient.model';
 import * as ShoppingListActions from './shopping-list.actions';
-import { compareNumbers } from '@angular/compiler-cli/src/diagnostics/typescript_version';
-import { DELETE_INGREDIENT } from './shopping-list.actions';
 
 export interface ShoppingListStateStructure {
     ingredients: Ingredient[];

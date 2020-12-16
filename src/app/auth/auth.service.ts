@@ -5,6 +5,9 @@ import { BehaviorSubject, throwError } from 'rxjs';
 import { UserModel } from './user.model';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
+import { Store } from '@ngrx/store';
+import * as fromApp from '../store/app.reducer'
+import * as AuthActions from './store/auth.actions'
 
 export interface AuthResponseData {
     idToken: string,
@@ -19,12 +22,13 @@ export interface AuthResponseData {
     providedIn: 'root'
 })
 export class AuthService {
-    user = new BehaviorSubject<UserModel>(null);
+/*    user = new BehaviorSubject<UserModel>(null);*/
     private tokenExpirationTimer: number
 
     constructor(
         private http: HttpClient,
         private router: Router,
+        private store: Store<fromApp.AppStateStructure>,
     ) {
     }
 
@@ -96,7 +100,14 @@ export class AuthService {
         );
 
         if (loadedUser.token) {
-            this.user.next(loadedUser);
+/*            this.user.next(loadedUser);*/
+            this.store.dispatch(new AuthActions.Login({
+                email:loadedUser.email,
+                userId: loadedUser.id,
+                token: loadedUser.token,
+                tokenExpirationDate: new Date(userData._tokenExpirationDate),
+            }))
+
             const expirationDuration = new Date(userData._tokenExpirationDate).getTime() - new Date().getTime();
             this.autoLogout(expirationDuration);
         }
@@ -104,7 +115,8 @@ export class AuthService {
     }
 
     logout() {
-        this.user.next(null);
+        this.store.dispatch(new AuthActions.Logout())
+/*        this.user.next(null);*/
         this.router.navigate(['/auth']);
         localStorage.removeItem('userData');
         if (this.tokenExpirationTimer) {
@@ -122,7 +134,13 @@ export class AuthService {
     private handleAuthentication(email: string, userId: string, token: string, expiresAfter: number) {
         const expirationDate = new Date(new Date().getTime() + expiresAfter * 1000);
         const user = new UserModel(email, userId, token, expirationDate);
-        this.user.next(user);
+        this.store.dispatch(new AuthActions.Login({
+            email,
+            userId,
+            token,
+            tokenExpirationDate: expirationDate
+        }));
+        /*        this.user.next(user);*/
         this.autoLogout(expiresAfter * 1000)
         localStorage.setItem('userData', JSON.stringify(user));
     }
