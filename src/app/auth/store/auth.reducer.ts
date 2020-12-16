@@ -1,6 +1,5 @@
 import { UserModel } from '../user.model';
 import * as AuthActions from './auth.actions';
-import * as ShoppingListActions from '../../shopping-list/store/shopping-list.actions';
 
 export interface AuthStateStructure {
     user: UserModel;
