@@ -9,11 +9,6 @@ export interface ShoppingListStateStructure {
     editedIngredientIndex: number;
 }
 
-export interface AppStateStructure {
-    shoppingList: ShoppingListStateStructure
-}
-
-
 const initialState: ShoppingListStateStructure =
     {
         ingredients: [
