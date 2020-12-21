@@ -5,10 +5,13 @@ import { fromEvent, interval, Observable, of, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { AlertComponent } from '../shared/alert/alert.component';
 import { PlaceholderDirective } from '../shared/placeholder.directive';
-
-
 import { mergeAll, switchAll, concatAll, combineAll, map, delay, debounceTime, take, exhaustMap } from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
+import { Store } from '@ngrx/store';
+import * as fromApp from '../store/app.reducer';
+import * as AuthActions from './store/auth.actions';
+
+
 
 @Component({
     selector: 'app-auth',
@@ -20,6 +23,7 @@ export class AuthComponent implements OnDestroy {
         private auth: AuthService,
         private router: Router,
         private componentFactoryResolver: ComponentFactoryResolver,
+        private store: Store<fromApp.AppStateStructure>
     ) {
     }
 
@@ -107,7 +111,11 @@ export class AuthComponent implements OnDestroy {
         let authObsrv: Observable<AuthResponseData>;
 
         if (this.isLogginMode) {
-            authObsrv = this.auth.login(form.value.email, form.value.password);
+/*            authObsrv = this.auth.login(form.value.email, form.value.password);*/
+            this.store.dispatch(new AuthActions.LoginStart({
+                email: form.value.email,
+                password: form.value.password,
+            }))
         } else {
             authObsrv = this.auth.singUp(form.value.email, form.value.password);
         }
