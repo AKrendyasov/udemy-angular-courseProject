@@ -9,5 +9,5 @@ export interface AppStateStructure {
 
 export const appReducer: ActionReducerMap<AppStateStructure> = {
     shoppingList: fromShoppingList.shoppingListReducer,
-    auth: fromAuth.authReducer
+    auth: fromAuth.authReducer,
 }

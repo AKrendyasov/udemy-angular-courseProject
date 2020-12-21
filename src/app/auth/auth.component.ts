@@ -1,4 +1,4 @@
-import { Component, ComponentFactoryResolver, OnDestroy, ViewChild } from '@angular/core';
+import { Component, ComponentFactoryResolver, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { AuthService, AuthResponseData } from './auth.service';
 import { fromEvent, interval, Observable, of, Subscription } from 'rxjs';
@@ -18,7 +18,7 @@ import * as AuthActions from './store/auth.actions';
     templateUrl: './auth.component.html',
     styleUrls: ['./auth.component.css']
 })
-export class AuthComponent implements OnDestroy {
+export class AuthComponent implements OnInit, OnDestroy {
     constructor(
         private auth: AuthService,
         private router: Router,
@@ -33,6 +33,17 @@ export class AuthComponent implements OnDestroy {
     alertSubClose: Subscription;
     @ViewChild(PlaceholderDirective) alertHost: PlaceholderDirective;
 
+    ngOnInit(): void {
+        this.store.select('auth').subscribe(authState=>{
+            this.isLoading = authState.loading;
+            this.error = authState.authError
+            if (this.error) {
+                this.showErrorAlert(this.error);
+            }
+
+        })
+
+    }
 
     onSwitchMode() {
         this.isLogginMode = !this.isLogginMode;
@@ -90,7 +101,7 @@ export class AuthComponent implements OnDestroy {
             .subscribe((value => {
                 console.log ('combineAll', value)
             }));
-
+/*
         interval(100).pipe(
             debounceTime(200)
         ).subscribe(vl => console.log('debounceTime',vl));
@@ -99,7 +110,7 @@ export class AuthComponent implements OnDestroy {
         const result = clicks.pipe(
             exhaustMap(ev => interval(1000).pipe(take(5)))
         );
-        result.subscribe(x => console.log('exhaustMap x', x));
+        result.subscribe(x => console.log('exhaustMap x', x));*/
     }
 
     onFormSubmit(form: NgForm) {
@@ -111,17 +122,19 @@ export class AuthComponent implements OnDestroy {
         let authObsrv: Observable<AuthResponseData>;
 
         if (this.isLogginMode) {
-/*            authObsrv = this.auth.login(form.value.email, form.value.password);*/
             this.store.dispatch(new AuthActions.LoginStart({
                 email: form.value.email,
                 password: form.value.password,
             }))
         } else {
-            authObsrv = this.auth.singUp(form.value.email, form.value.password);
+            this.store.dispatch(new AuthActions.SignupStart({
+                email: form.value.email,
+                password: form.value.password,
+            }))
         }
         form.reset();
 
-        authObsrv.subscribe(
+/*        authObsrv.subscribe(
             responseData => {
                 this.isLoading = false;
                 this.error = null;
@@ -132,7 +145,7 @@ export class AuthComponent implements OnDestroy {
                 this.showErrorAlert(errorMessage);
                 this.isLoading = false;
             }
-        );
+        );*/
     }
 
     onHandleError() {
