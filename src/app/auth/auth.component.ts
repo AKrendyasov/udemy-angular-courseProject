@@ -31,18 +31,17 @@ export class AuthComponent implements OnInit, OnDestroy {
     isLoading = false;
     error = null;
     alertSubClose: Subscription;
+    storeSub: Subscription;
     @ViewChild(PlaceholderDirective) alertHost: PlaceholderDirective;
 
     ngOnInit(): void {
-        this.store.select('auth').subscribe(authState=>{
+        this.storeSub = this.store.select('auth').subscribe(authState=>{
             this.isLoading = authState.loading;
             this.error = authState.authError
             if (this.error) {
                 this.showErrorAlert(this.error);
             }
-
         })
-
     }
 
     onSwitchMode() {
@@ -149,7 +148,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     }
 
     onHandleError() {
-        this.error = null;
+        this.store.dispatch(new AuthActions.ClearError())
     }
 
     private showErrorAlert(message: string) {
@@ -165,8 +164,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        if (this.alertSubClose) {
-            this.alertSubClose.unsubscribe();
-        }
+        this.alertSubClose?.unsubscribe();
+        this.storeSub?.unsubscribe()
     }
 }
